@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>小岛待办事务所</title>
+<!-- 不引外部字体 CDN：资源一律放在皮肤文件夹内；字体走 style.css 的本地回退链 -->
+<!-- 相对路径引用（页面源为 http://skin.localhost，与 controls-demo 注释推荐的省心写法一致） -->
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="window drag-region t-mint" id="win">
+  <span class="tag" id="tag">--:--</span>
+  <svg class="scene" id="scene" viewBox="0 0 420 84" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="avatar" id="avatar"></div>
+      <div class="titles"><h2 id="title"></h2><span id="sub"></span></div>
+      <div class="date-chip" id="date"></div>
+    </div>
+    <div class="progress-row">
+      <div class="progress-track"><div class="progress-fill" id="fill"></div></div>
+      <span class="progress-label" id="plabel">0/0</span>
+    </div>
+    <ul class="todo-list" id="list"></ul>
+    <form class="add-form" id="form">
+      <input class="add-input" id="input" type="text" maxlength="40" autocomplete="off">
+      <button class="add-btn" type="submit">＋ 加</button>
+    </form>
+    <div class="card-foot">
+      <span class="remain" id="remain"></span>
+      <button class="ghost-btn" id="clear" type="button">清空已完成</button>
+    </div>
+  </div>
+</div>
+
+<script src="main.js"></script>
+</body>
+</html>

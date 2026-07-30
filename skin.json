@@ -1,0 +1,45 @@
+{
+  "id": "animal-island-todo",
+  "name": "小岛待办事务所",
+  "version": "1.0.0",
+  "author": "小城子",
+  "description": "动森风任务待办小窗口：五套手绘场景主题、完成进度条，任务清单在皮肤与配置页间实时同步",
+  "entry": "index.html",
+  "window": {
+    "width": 380,
+    "height": 540,
+    "transparent": true,
+    "always_on_top": false,
+    "on_desktop": true,
+    "resizable": false,
+    "opacity": 1.0
+  },
+  "settings": [
+    { "key": "theme", "type": "select",
+      "label": "主题风格",
+      "group": "外观",
+      "description": "五套动森风主题，各有独立文案与手绘场景",
+      "default": "mint",
+      "options": [
+        { "value": "mint",   "label": "薄荷小岛" },
+        { "value": "sea",    "label": "海浪假日" },
+        { "value": "forest", "label": "森林咖啡" },
+        { "value": "night",  "label": "星夜营地" },
+        { "value": "oasis",  "label": "沙漠绿洲" }
+      ] },
+    { "key": "clock_format", "type": "radio",
+      "label": "时间格式",
+      "group": "外观",
+      "description": "场景栏标签显示的当前时间",
+      "default": "12h",
+      "options": [
+        { "value": "24h", "label": "24 小时制" },
+        { "value": "12h", "label": "12 小时制" }
+      ] },
+    { "key": "tasks", "type": "todolist",
+      "label": "任务清单",
+      "group": "任务",
+      "description": "皮肤与这里共用同一份清单，任一侧改动都会实时同步",
+      "default": [] }
+  ]
+}
