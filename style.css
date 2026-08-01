@@ -194,6 +194,33 @@ body {
 .todo-item:hover .del { opacity: 1; transform: scale(1); }
 .del:hover { background: #ffe4e0; color: var(--error); }
 
+/* 拖拽排序：文本区抓手光标；拖拽中的卡片浮起（实时换位由 JS 驱动）。
+   拖拽中禁用 itemIn——DOM 换位会让 Chromium 重播入场动画（闪烁感来源）。
+   放大/阴影必须收在列表内边距内（左右 3px、底 6px）：.todo-list 是
+   overflow 裁剪容器，更大的变换/阴影会被切边 */
+.todo-text { cursor: grab; }
+.todo-item.dragging {
+  position: relative; z-index: 10;
+  animation: none;
+  transform: scale(1.01);
+  box-shadow: 0 6px 0 var(--shadow);
+  border-color: var(--pri);
+}
+.todo-item.dragging .todo-text { cursor: grabbing; }
+/* 拖拽落点重渲染：整列跳过入场动画（见 main.js render(noAnim)） */
+.todo-item.no-anim { animation: none; }
+
+/* 右键改文字：原地输入框，焦点黄描边与添加框一致 */
+.edit-input {
+  flex: 1; min-width: 0;
+  font-family: var(--font); font-size: 14px; font-weight: 700; color: var(--body);
+  letter-spacing: .01em;
+  background: #fffdf5; border: 2px solid var(--focus-yellow); border-radius: 10px;
+  padding: 3px 8px; outline: none;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 /* 空状态 */
 .empty { text-align: center; padding: 30px 0 26px; color: var(--muted); font-weight: 700; font-size: 13.5px; }
 .empty .big { display: block; margin-bottom: 8px; animation: bob 3s var(--ease) infinite; }

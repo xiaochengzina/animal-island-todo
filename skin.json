@@ -1,7 +1,7 @@
 {
   "id": "animal-island-todo",
   "name": "小岛待办事务所",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "小城子",
   "description": "动森风任务待办小窗口：五套手绘场景主题、完成进度条，任务清单在皮肤与配置页间实时同步",
   "entry": "index.html",

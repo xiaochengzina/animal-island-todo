@@ -309,7 +309,7 @@ function migrateLegacyTodos() {
   return true;
 }
 
-function render() {
+function render(noAnim) {
   const cfg = THEMES[themeKey];
   listEl.innerHTML = '';
   if (todos.length === 0) {
@@ -317,7 +317,9 @@ function render() {
   } else {
     todos.forEach((todo, idx) => {
       const li = document.createElement('li');
-      li.className = 'todo-item' + (todo.done ? ' done' : '');
+      // noAnim：拖拽落点重渲染时跳过 itemIn 入场动画——卡片在拖拽中一直
+      // 可见，整列重播入场动画会表现为一阵闪烁
+      li.className = 'todo-item' + (todo.done ? ' done' : '') + (noAnim ? ' no-anim' : '');
       li.dataset.idx = idx;
       li.innerHTML = `
         <button class="checkbox" type="button" aria-label="完成"><span class="tick">✓</span></button>
@@ -349,6 +351,97 @@ listEl.addEventListener('click', (e) => {
     save(); render();
   }
 });
+
+/* 拖拽排序 = 优先级（清单顺序即优先级，新任务默认置顶）。
+   左键按在文本区（勾选/删除/编辑框除外）超过 6px 进入拖拽，实时换位预览，
+   松手按 DOM 顺序重建清单并写回。指针捕获会把拖拽后的那次 click 重定向到
+   被拖卡片本身（文本区无 click 动作），不会误触其它卡片的勾选。 */
+let drag = null;
+
+listEl.addEventListener('pointerdown', (e) => {
+  if (e.button !== 0) return;
+  const li = e.target.closest('.todo-item');
+  if (!li || e.target.closest('.checkbox, .del, .edit-input')) return;
+  drag = { li, id: e.pointerId, x: e.clientX, y: e.clientY, active: false };
+});
+
+window.addEventListener('pointermove', (e) => {
+  if (!drag || e.pointerId !== drag.id) return;
+  if (!drag.active) {
+    if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;
+    drag.active = true;
+    drag.li.classList.add('dragging');
+    // 合成事件/指针恰好已抬起等场景下指针 id 不活跃会抛 NotFoundError，
+    // 捕获失败只少「click 重定向」这一层保险，拖拽本身不受影响
+    try { drag.li.setPointerCapture(drag.id); } catch (err) { /* ignore */ }
+  }
+  // 指针越过某卡片中线即插到它前面，否则落到最后（纵向列表）
+  const after = [...listEl.querySelectorAll('.todo-item:not(.dragging)')]
+    .find((el) => {
+      const box = el.getBoundingClientRect();
+      return e.clientY < box.top + box.height / 2;
+    });
+  if (after) listEl.insertBefore(drag.li, after);
+  else listEl.appendChild(drag.li);
+});
+
+function endDrag(e) {
+  if (!drag || e.pointerId !== drag.id) return;
+  if (drag.active) {
+    // dataset.idx 还是拖拽前渲染时的下标，按 DOM 顺序映射回原数组
+    const order = [...listEl.querySelectorAll('.todo-item')]
+      .map((el) => Number(el.dataset.idx));
+    todos = order.map((i) => todos[i]);
+    save(); render(true);
+  }
+  drag = null;
+}
+window.addEventListener('pointerup', endDrag);
+window.addEventListener('pointercancel', endDrag);
+
+/* 右键卡片 = 改文字：捕获阶段拦截 + stopPropagation——桥接层的宿主皮肤
+   菜单挂在 document 冒泡监听器（protocol.rs 注入），捕获阶段拦断后它根本
+   收不到事件；WebView2 默认菜单由 preventDefault 抑制。Enter/失焦提交，
+   Esc/空文本取消。列表空白处不拦截：右键仍正常弹宿主皮肤菜单。 */
+window.addEventListener('contextmenu', (e) => {
+  const li = e.target.closest && e.target.closest('.todo-item');
+  if (!li || !listEl.contains(li)) return;
+  e.preventDefault();
+  e.stopPropagation();
+  startEdit(li);
+}, true);
+
+function startEdit(li) {
+  if (li.querySelector('.edit-input')) return;
+  const todo = todos[Number(li.dataset.idx)];
+  const span = $('.todo-text', li);
+  if (!todo || !span) return;
+  const input = document.createElement('input');
+  input.className = 'edit-input';
+  input.type = 'text';
+  input.maxLength = 40;
+  input.value = todo.text;
+  span.replaceWith(input);
+  input.focus();
+  input.select();
+  let done = false;
+  const finish = (commit) => {
+    if (done) return;
+    done = true;
+    const text = input.value.trim();
+    if (commit && text) {
+      todo.text = text;
+      save();
+    }
+    render();   // 取消也要执行：把输入框换回文本节点
+  };
+  input.addEventListener('keydown', (e) => {
+    e.stopPropagation();
+    if (e.key === 'Enter') finish(true);
+    else if (e.key === 'Escape') finish(false);
+  });
+  input.addEventListener('blur', () => finish(true));
+}
 
 /* 添加 */
 formEl.addEventListener('submit', (e) => {
